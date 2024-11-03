@@ -34,12 +34,14 @@ def download_file(cancel_param, destination, temp_destination, progress_param, u
     handle_request_error(e, temp_destination, download_param, progress_param, params_memory)
 
 def handle_error(destination, error_message, error, download_param, progress_param, params_memory):
-  print(f"Error occurred: {error}")
   if destination:
     delete_file(destination)
+
   if download_param:
     params_memory.remove(download_param)
-  if progress_param:
+
+  if progress_param and "404" not in error_message:
+    print(f"Error occurred: {error}")
     params_memory.put(progress_param, error_message)
 
 def handle_request_error(error, destination, download_param, progress_param, params_memory):
@@ -51,9 +53,6 @@ def handle_request_error(error, destination, download_param, progress_param, par
   }
 
   error_message = error_map.get(type(error), "Unexpected error.")
-  if isinstance(error, requests.HTTPError) and error.response and error.response.status_code == 404:
-    return
-
   handle_error(destination, f"Failed: {error_message}", error, download_param, progress_param, params_memory)
 
 def get_remote_file_size(url):
@@ -61,12 +60,18 @@ def get_remote_file_size(url):
     response = requests.head(url, headers={'Accept-Encoding': 'identity'}, timeout=5)
     if response.status_code == 404:
       print(f"URL not found: {url}")
-      return None
+      return 0
     response.raise_for_status()
     return int(response.headers.get('Content-Length', 0))
+  except requests.HTTPError as e:
+    if e.response and e.response.status_code == 404:
+      print(f"URL not found: {url}")
+      return 0
+    handle_request_error(e, None, None, None, None)
+    return 0
   except Exception as e:
     handle_request_error(e, None, None, None, None)
-    return None
+    return 0
 
 def get_repository_url():
   if is_url_pingable("https://github.com"):

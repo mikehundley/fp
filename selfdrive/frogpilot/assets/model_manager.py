@@ -54,7 +54,7 @@ class ModelManager:
     elif "gitlab" in repo_url:
       api_url = f"https://gitlab.com/api/v4/projects/{urllib.parse.quote_plus(project_path)}/repository/tree?ref={branch}"
     else:
-      raise ValueError(f"Unsupported repository URL format: {repo_url}. Supported formats are GitHub and GitLab URLs.")
+      return {}
 
     try:
       response = requests.get(api_url)
@@ -72,9 +72,9 @@ class ModelManager:
         return model_sizes
       else:
         return {file['name'].replace('.thneed', ''): file['size'] for file in thneed_files if 'size' in file}
-
-    except requests.RequestException as e:
+    except Exception as e:
       raise ConnectionError(f"Failed to fetch model sizes from {'GitHub' if 'github' in repo_url else 'GitLab'}: {e}")
+      return {}
 
   @staticmethod
   def copy_default_model():
@@ -98,7 +98,7 @@ class ModelManager:
 
     print(f"Verification failed for model {model}. Retrying from GitLab...")
     model_url = f"{GITLAB_URL}Models/{model}.thneed"
-    download_file(self.cancel_download_param, model_path, self.download_progress_param, model_url, self.download_param, self.params_memory)
+    download_file(self.cancel_download_param, model_path, temp_model_path, self.download_progress_param, model_url, self.download_param, self.params_memory)
 
     if verify_download(model_path, temp_model_path, model_url):
       print(f"Model {model} redownloaded and verified successfully from GitLab.")

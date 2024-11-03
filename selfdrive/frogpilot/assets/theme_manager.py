@@ -319,7 +319,7 @@ class ThemeManager:
       print(f"Downloading theme from GitHub: {theme_name}")
       download_file(CANCEL_DOWNLOAD_PARAM, theme_path, temp_theme_path, DOWNLOAD_PROGRESS_PARAM, theme_url, theme_param, self.params_memory)
 
-      if verify_download(theme_path, theme_url):
+      if verify_download(theme_path, temp_theme_path, theme_url):
         print(f"Theme {theme_name} downloaded and verified successfully from GitHub!")
         if ext == ".zip":
           self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Unpacking theme...")
