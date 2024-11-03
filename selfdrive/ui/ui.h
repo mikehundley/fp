@@ -145,6 +145,7 @@ typedef struct UIScene {
   bool acceleration_path;
   bool adjacent_path;
   bool adjacent_path_metrics;
+  bool always_on_lateral;
   bool always_on_lateral_active;
   bool aol_status_bar;
   bool big_map;
@@ -183,6 +184,8 @@ typedef struct UIScene {
   bool memory_metrics;
   bool model_randomizer;
   bool model_ui;
+  bool no_logging;
+  bool no_uploads;
   bool numerical_temp;
   bool online;
   bool onroad_distance_button;
