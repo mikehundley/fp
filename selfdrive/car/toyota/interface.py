@@ -28,6 +28,10 @@ class CarInterface(CarInterfaceBase):
     if DBC[candidate]["pt"] == "toyota_new_mc_pt_generated":
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_TOYOTA_ALT_BRAKE
 
+    if ret.flags & ToyotaFlags.SECOC.value:
+      ret.secOcRequired = True
+      ret.safetyConfigs[0].safetyParam |= Panda.FLAG_TOYOTA_SECOC
+
     if candidate in ANGLE_CONTROL_CAR:
       ret.steerControlType = SteerControlType.angle
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_TOYOTA_LTA
@@ -75,7 +79,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate in (CAR.LEXUS_RX, CAR.LEXUS_RX_TSS2):
       ret.wheelSpeedFactor = 1.035
 
-    elif candidate in (CAR.TOYOTA_RAV4_TSS2, CAR.TOYOTA_RAV4_TSS2_2022, CAR.TOYOTA_RAV4_TSS2_2023):
+    elif candidate in (CAR.TOYOTA_RAV4_TSS2, CAR.TOYOTA_RAV4_TSS2_2022, CAR.TOYOTA_RAV4_TSS2_2023, CAR.TOYOTA_RAV4_PRIME, CAR.TOYOTA_SIENNA_4TH_GEN):
       ret.lateralTuning.init('pid')
       ret.lateralTuning.pid.kiBP = [0.0]
       ret.lateralTuning.pid.kpBP = [0.0]
@@ -108,6 +112,10 @@ class CarInterface(CarInterfaceBase):
     if candidate in (RADAR_ACC_CAR | NO_DSU_CAR):
       ret.experimentalLongitudinalAvailable = use_sdsu or candidate in RADAR_ACC_CAR
 
+      # Disabling radar is only supported on TSS2 radar-ACC cars
+      if experimental_long and candidate in RADAR_ACC_CAR:
+        ret.flags |= ToyotaFlags.DISABLE_RADAR.value
+
       if not use_sdsu:
         # Disabling radar is only supported on TSS2 radar-ACC cars
         if experimental_long and candidate in RADAR_ACC_CAR:
@@ -116,15 +124,19 @@ class CarInterface(CarInterfaceBase):
         use_sdsu = use_sdsu and experimental_long
 
     # openpilot longitudinal enabled by default:
-    #  - non-(TSS2 radar ACC cars) w/ smartDSU installed
     #  - cars w/ DSU disconnected
     #  - TSS2 cars with camera sending ACC_CONTROL where we can block it
     # openpilot longitudinal behind experimental long toggle:
-    #  - TSS2 radar ACC cars w/ smartDSU installed
-    #  - TSS2 radar ACC cars w/o smartDSU installed (disables radar)
-    #  - TSS-P DSU-less cars w/ CAN filter installed (no radar parser yet)
-    ret.openpilotLongitudinalControl = use_sdsu or ret.enableDsu or candidate in (TSS2_CAR - RADAR_ACC_CAR) or bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value)
+    #  - TSS2 radar ACC cars (disables radar)
+
+    if ret.flags & ToyotaFlags.SECOC.value:
+      ret.openpilotLongitudinalControl = False
+    else:
+      ret.openpilotLongitudinalControl = ret.enableDsu or \
+        candidate in (TSS2_CAR - RADAR_ACC_CAR) or \
+        bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value)
     ret.openpilotLongitudinalControl &= not disable_openpilot_long
+
     ret.autoResumeSng = ret.openpilotLongitudinalControl and candidate in NO_STOP_TIMER_CAR
     ret.enableGasInterceptor = 0x201 in fingerprint[0] and ret.openpilotLongitudinalControl
 
