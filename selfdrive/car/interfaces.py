@@ -352,7 +352,7 @@ class CarInterfaceBase(ABC):
     ret.tireStiffnessFactor = 1.0
     ret.steerControlType = car.CarParams.SteerControlType.torque
     ret.minSteerSpeed = 0.
-    ret.wheelSpeedFactor = 1.0
+    ret.wheelSpeedFactor = 1.025
 
     ret.pcmCruise = True     # openpilot's state is tied to the PCM's cruise state on most cars
     ret.minEnableSpeed = -1. # enable is done by stock ACC, so ignore this
@@ -435,10 +435,10 @@ class CarInterfaceBase(ABC):
                            enable_buttons=(ButtonType.accelCruise, ButtonType.decelCruise)):
     events = Events()
 
-    if cs_out.doorOpen:
-      events.add(EventName.doorOpen)
-    if cs_out.seatbeltUnlatched:
-      events.add(EventName.seatbeltNotLatched)
+#    if cs_out.doorOpen:
+#      events.add(EventName.doorOpen)
+#    if cs_out.seatbeltUnlatched:
+#      events.add(EventName.seatbeltNotLatched)
     if cs_out.gearShifter != GearShifter.drive and (extra_gears is None or
        cs_out.gearShifter not in extra_gears):
       events.add(EventName.wrongGear)

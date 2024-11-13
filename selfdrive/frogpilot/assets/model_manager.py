@@ -14,7 +14,7 @@ from openpilot.selfdrive.frogpilot.assets.download_functions import GITHUB_URL, 
 from openpilot.selfdrive.frogpilot.frogpilot_functions import MODELS_PATH
 from openpilot.selfdrive.frogpilot.frogpilot_utilities import delete_file
 
-VERSION = "v10"
+VERSION = "v9"
 
 DEFAULT_MODEL = "north-dakota"
 DEFAULT_MODEL_NAME = "North Dakota (Default)"
